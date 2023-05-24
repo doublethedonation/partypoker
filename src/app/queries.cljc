@@ -1,5 +1,5 @@
 (ns app.queries
-  (:require [xtdb.api :as xt]))
+  (:require #?(:clj [xtdb.api :as xt])))
 
 (defn create-account [db account-name]
   (xt/submit-tx db [[:xtdb.api/put
@@ -42,6 +42,7 @@
 
 (comment
   (create-account user/!xtdb "Kanwei")
+  (create-account user/!xtdb "Jonathon")
   (create-room user/!xtdb "room1")
   (create-room user/!xtdb "room3")
   (enter-room user/!xtdb "room3" "Kanwei")
