@@ -1,4 +1,4 @@
-(ns app.user-list
+(ns app.room-list
   (:require #?(:clj [app.xtdb-contrib :as db])
             [app.queries :as queries]
             [hyperfiddle.electric :as e]
@@ -9,50 +9,50 @@
 (e/def !xtdb)
 (e/def db) ; injected database ref; Electric defs are always dynamic
 
-(e/defn UserItem [id]
+(e/defn RoomItem [id]
   (e/server
     (let [e (xt/entity db id)]
       (e/client
         (dom/div
-         (dom/label (dom/props {:for id}) (dom/text (e/server (:account/name e)))))))))
+         (dom/label (dom/props {:for id}) (dom/text (e/server (:room/name e)))))))))
 
-(e/defn UserSubmit [F]
+(e/defn RoomSubmit [F]
   (dom/input
-   (dom/props {:placeholder "User name"})
+   (dom/props {:placeholder "Room name"})
    (dom/on "keydown" (e/fn [e]
                        (when (= "Enter" (.-key e))
                          (when-some [v (contrib.str/empty->nil (-> e .-target .-value))]
                            (new F v)    ;'new' is used to call electric objects/functions?
                            (set! (.-value dom/node) "")))))))
 
-(e/defn UserCreate []
+(e/defn RoomCreate []
   (e/client
-   (UserSubmit. (e/fn [v]
+   (RoomSubmit. (e/fn [v]
                   (e/server
-                   (queries/create-account !xtdb v))))))
+                   (queries/create-room !xtdb v))))))
 
 #?(:clj
-   (defn user-records [db]
-     (->> (queries/get-all-accounts (xt/db user/!xtdb))
+   (defn room-records [db]
+     (->> (queries/get-all-rooms (xt/db user/!xtdb))
           (map first)
-          (sort-by :account/name)
+          (sort-by :room/name)
           vec)))
 
-(e/defn User-list []
+(e/defn Room-list []
   (e/server
    (binding [!xtdb user/!xtdb
              db (new (db/latest-db> user/!xtdb))]
      (e/client
       (dom/link (dom/props {:rel :stylesheet :href "https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"}))
-      (dom/h1 (dom/text "Planning Poker Users"))
+      (dom/h1 (dom/text "Planning Poker Rooms"))
       (dom/div
-       (dom/text "Enter username:")
-       (UserCreate.)
+       (dom/text "Enter room name:")
+       (RoomCreate.)
        (dom/div
         (dom/style {:padding-top "10px"})
         (dom/p
          (dom/strong 
-          (dom/text "Logged in users:")))
+          (dom/text "Rooms:")))
         (e/server
-         (e/for-by :xt/id [{:keys [xt/id]} (e/offload #(user-records db))]
-                   (UserItem. id)))))))))
+         (e/for-by :xt/id [{:keys [xt/id]} (e/offload #(room-records db))]
+                   (RoomItem. id)))))))))
