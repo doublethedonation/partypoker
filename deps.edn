@@ -1,12 +1,15 @@
 ;; Start a REPL with env var XTDB_ENABLE_BYTEUTILS_SHA1=true
 {:paths ["src" "resources"]
+ :mvn/repos {"ossrh-snapshots" {:url "https://s01.oss.sonatype.org/content/repositories/snapshots"}}
  :deps
  {ch.qos.logback/logback-classic {:mvn/version "1.2.11"}
   ;com.google.guava/guava {:mvn/version "31.1-jre"} ; force guava to latest to fix shadow issue
   com.hyperfiddle/electric {:mvn/version "v2-alpha-263-g89da9d11"}
   com.hyperfiddle/rcf {:mvn/version "20220926-202227"}
-  com.xtdb/xtdb-core {:mvn/version "1.23.0"}
-  com.xtdb/xtdb-rocksdb {:mvn/version "1.23.0"}
+  com.xtdb.labs/xtdb-api {:mvn/version "2.0.0-SNAPSHOT"}
+  com.xtdb.labs/xtdb-core {:mvn/version "2.0.0-SNAPSHOT"}
+  com.xtdb.labs/xtdb-http-server {:mvn/version "2.0.0-SNAPSHOT"}
+  com.xtdb.labs/xtdb-pgwire-server {:mvn/version "2.0.0-SNAPSHOT"}
   info.sunng/ring-jetty9-adapter
   {:mvn/version "0.14.3" ; (Jetty 9) is Java 8 compatible;
    ;:mvn/version "0.17.7" ; (Jetty 10) is NOT Java 8 compatible
@@ -29,7 +32,9 @@
     "-Dlogback.configurationFile=src/logback.xml"
     "-XX:-OmitStackTraceInFastThrow" ;; RCF
     "-XX:+UnlockDiagnosticVMOptions"
-    "-XX:+DebugNonSafepoints"]
+    "-XX:+DebugNonSafepoints"
+    "--add-opens=java.base/java.nio=ALL-UNNAMED"
+    "-Dio.netty.tryReflectionSetAccessible=true"]
    :exec-fn user/main
    :exec-args {}}}
  :jvm-opts ["-Dclojure.tools.logging.factory=clojure.tools.logging.impl/slf4j-factory"

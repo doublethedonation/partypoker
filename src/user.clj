@@ -1,6 +1,7 @@
 (ns user ; Must be ".clj" file, Clojure doesn't auto-load user.cljc
   (:require clojure.java.io
-            [xtdb.api :as xt]))
+            [xtdb.api :as xt]
+            [xtdb.node :as xt.node]))
 
 ; lazy load dev stuff - for faster REPL startup and cleaner dev classpath
 (def start-electric-server! (delay @(requiring-resolve 'electric-server-java8-jetty9/start-server!)))
@@ -9,13 +10,19 @@
 
 (defn start-xtdb! [] ; from XTDB’s getting started: xtdb-in-a-box
   (assert (= "true" (System/getenv "XTDB_ENABLE_BYTEUTILS_SHA1")))
-  (letfn [(kv-store [dir] {:kv-store {:xtdb/module 'xtdb.rocksdb/->kv-store
+  #_(letfn [(kv-store [dir] {:kv-store {:xtdb/module 'xtdb.rocksdb/->kv-store
                                       :db-dir (clojure.java.io/file dir)
                                       :sync? true}})]
-    (xt/start-node
-      {:xtdb/tx-log (kv-store "data/dev/tx-log")
-       :xtdb/document-store (kv-store "data/dev/doc-store")
-       :xtdb/index-store (kv-store "data/dev/index-store")})))
+    (xt.node/start-node
+     {:xtdb/tx-log (kv-store "data/dev/tx-log")
+      :xtdb/document-store (kv-store "data/dev/doc-store")
+      :xtdb/index-store (kv-store "data/dev/index-store")
+      ;:xtdb/server {:port 3001}
+      ;:xtdb/pgwire {:port 5432}
+      }))
+  (xt.node/start-node
+   {:xtdb/server {:port 3001}
+    :xtdb/pgwire {:port 5432}}))
 
 (def electric-server-config
   {:host "0.0.0.0", :port 8080, :resources-path "public"})
@@ -29,13 +36,14 @@
 (defn main [& args]
   (println "Starting XTDB...")
   (alter-var-root #'!xtdb (constantly (start-xtdb!)))
-  (comment (.close !xtdb))
-  (println "Starting Electric compiler...")
-  (@shadow-start!) ; serves index.html as well
-  (@shadow-watch :dev) ; depends on shadow server
-  (println "Starting Electric server...")
-  (alter-var-root #'!electric-server (constantly (@start-electric-server! electric-server-config)))
-  (comment (.stop !electric-server)))
+  (.close !xtdb)
+  ;; (println "Starting Electric compiler...")
+  ;; (@shadow-start!) ; serves index.html as well
+  ;; (@shadow-watch :dev) ; depends on shadow server
+  ;; (println "Starting Electric server...")
+  ;; (alter-var-root #'!electric-server (constantly (@start-electric-server! electric-server-config)))
+  ;; (comment (.stop !electric-server))
+  )
 
 (comment
   (main) ; Electric Clojure(JVM) REPL entrypoint
