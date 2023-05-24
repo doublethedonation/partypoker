@@ -12,6 +12,9 @@
                       :room/name             room-name
                       :room/current-accounts #{}}]]))
 
+(defn delete-room [db room]
+  (xt/submit-tx db [[:xtdb.api/delete (:xt/id room)]]))
+
 (defn create-vote [])
 
 (defn get-all-accounts [db]
@@ -32,12 +35,9 @@
 (defn enter-room [db room-name account-name]
   (let [room (get-room-by-name (xt/db db) room-name)]
     (if room
-      (do (println room (update room :current-accounts conj account-name))
-       (xt/submit-tx db [[:xtdb.api/put
-                          (assoc room :testvar 1
-                                      :current-accounts
-                                      (set (conj (:current-accounts room) account-name)))]])))))
-
+      (xt/submit-tx db [[:xtdb.api/put
+                         (assoc room :room/current-accounts
+                                     (set (conj (:room/current-accounts room) account-name)))]]))))
 
 
 (comment
@@ -45,10 +45,11 @@
   (create-account user/!xtdb "Jonathon")
   (create-room user/!xtdb "room1")
   (create-room user/!xtdb "room3")
-  (enter-room user/!xtdb "room3" "Kanwei")
+  (enter-room user/!xtdb "room1" "Kanwei")
   (create-room user/!xtdb "room123")
   (get-all-rooms (xt/db user/!xtdb))
-  (get-room-by-name (xt/db user/!xtdb) "room2")
+  (get-room-by-name (xt/db user/!xtdb) "room3")
+  (delete-room user/!xtdb (get-room-by-name (xt/db user/!xtdb) "room1"))
   (get-room-by-name (xt/db user/!xtdb) "aroomfake")
   (get-all-accounts (xt/db user/!xtdb)))
 
